@@ -219,7 +219,7 @@ Each model entry stores:
 ```json
 {
   "provider": "alibaba",
-  "model": "qwen-coder",
+  "model": "qwen3-coder-next",
   "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
   "apiKeyRef": "alibaba_default",
   "temperature": 0.2,
