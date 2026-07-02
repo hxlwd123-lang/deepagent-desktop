@@ -1,14 +1,30 @@
-# Local Desktop Coding Agent Design
+# DeepAgent Desktop Design
 
 ## Purpose
 
-Build a local-first desktop AI coding tool similar in working style to Claude Code Desktop. The product uses Deep Agents as the Python agent harness, a multi-agent architecture, and harness-engineering principles so users can safely delegate coding work while retaining control over local files, shell commands, model choice, and approvals.
+Build DeepAgent Desktop, a local-first desktop AI coding tool similar in working style to Claude Code Desktop. The product uses Deep Agents as the Python agent harness, a multi-agent architecture, and harness-engineering principles so users can safely delegate coding work while retaining control over local files, shell commands, model choice, and approvals.
 
 ## Product Direction
 
 The first version is a local desktop application. It opens a local project, lets the user start a coding session, asks the agent to plan before acting, shows every meaningful tool call in a visible timeline, gates risky actions through approvals, and produces reviewable diffs before applying code changes.
 
 The first version prioritizes a reliable single-user local workflow over cloud execution, team collaboration, remote sandboxes, or plugin marketplaces.
+
+## Product Decisions
+
+These decisions define the first implementation milestone:
+
+- Product name: DeepAgent Desktop.
+- Repository: `hxlwd123-lang/deepagent-desktop`.
+- First development and test platform: Windows.
+- Desktop stack: Tauri, React, TypeScript, and npm.
+- Python runtime stack: Python, uv, FastAPI, WebSocket, SQLite, and Deep Agents.
+- First model provider: Alibaba Cloud Model Studio / Bailian / DashScope for Qwen models.
+- Model API strategy: use Alibaba's OpenAI-compatible interface first, while keeping the model registry extensible for future providers.
+- MCP: usable MCP configuration is required in the first working build.
+- Git commits: the agent may create git commits in the MVP, but only through explicit approval.
+- UI style: dense, calm, engineering-focused desktop workbench.
+- First distribution goal: developer-run Windows app; packaged installer is a post-MVP packaging milestone after the local workflow is stable.
 
 ## Research Basis
 
@@ -192,27 +208,28 @@ Global provider configuration
 
 The first version supports:
 
-- OpenAI
-- Anthropic
-- Gemini
-- OpenRouter
-- Ollama
-- Any OpenAI-compatible endpoint
+- Alibaba Cloud Model Studio / Bailian / DashScope for Qwen models.
+- Alibaba OpenAI-compatible Chat Completions as the default integration path.
+- A generic OpenAI-compatible provider profile only where needed to support Alibaba endpoint configuration cleanly.
+
+Post-MVP versions may add OpenAI, Anthropic, Gemini, OpenRouter, Ollama, and other local or remote providers through the same registry and router interfaces.
 
 Each model entry stores:
 
 ```json
 {
-  "provider": "openai",
-  "model": "gpt-5",
-  "baseUrl": null,
-  "apiKeyRef": "openai_default",
+  "provider": "alibaba",
+  "model": "qwen-coder",
+  "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "apiKeyRef": "alibaba_default",
   "temperature": 0.2,
   "maxTokens": 64000,
   "reasoningEffort": "medium",
   "supportsTools": true
 }
 ```
+
+Alibaba configuration should allow the user to override `baseUrl` because Model Studio may require region-specific, workspace-specific, or coding-plan endpoints.
 
 API keys are stored through the operating system keychain via Tauri. The Python runtime receives only the selected key value or a short-lived environment reference for the active provider.
 
@@ -325,20 +342,22 @@ Security tests:
 The first version includes:
 
 - local project open
-- OpenAI, Anthropic, and OpenAI-compatible or Ollama configuration
+- Alibaba Cloud Model Studio / Bailian / DashScope model configuration
 - coding session creation
 - Plan/Act workflow
 - file read and search tools
 - diff generation and patch application
 - shell command approval and execution
+- approved git commit creation
 - planner, reviewer, and debugger subagent status
 - event timeline
 - local SQLite persistence
-- basic MCP configuration entry
+- usable MCP configuration for user and project servers
 - settings page
 
 The first version excludes:
 
+- OpenAI, Anthropic, Gemini, OpenRouter, and Ollama provider implementations
 - cloud execution
 - team collaboration
 - remote sandbox providers
@@ -361,19 +380,21 @@ The MVP is complete when a user can:
 7. Approve a patch.
 8. Approve a test command.
 9. Receive a final summary with reviewer findings.
-10. Reopen the session after restarting the app.
+10. Approve agent-created git commits.
+11. Configure and load an MCP server.
+12. Reopen the session after restarting the app.
 
-## Implementation Inputs Needed
+## Resolved Implementation Inputs
 
-Before implementation planning, collect these product decisions from the user:
+The user has resolved the required first-milestone decisions:
 
-1. Product name and repository name.
-2. First target operating system for development and testing.
-3. Preferred package manager for the frontend.
-4. Preferred Python dependency manager.
-5. Initial model providers to support in the first build.
-6. Whether the first build should include local Ollama support.
-7. Whether MCP configuration is required in the first working build or can be a visible settings stub.
-8. Whether git commit creation should be allowed in MVP or limited to status and diff.
-9. Visual style preference for the desktop UI.
-10. Distribution goal for the first milestone: developer run only or packaged desktop installer.
+1. Product name: DeepAgent Desktop.
+2. First target operating system: Windows.
+3. Frontend package manager: npm.
+4. Python dependency manager: uv.
+5. Initial model provider: Alibaba Cloud Model Studio / Bailian / DashScope.
+6. Local Ollama support: deferred after MVP.
+7. MCP configuration: required in the first working build.
+8. Git commit creation: allowed in MVP through explicit approval.
+9. Visual style: dense engineering control surface.
+10. Distribution goal: developer-run Windows build first, packaged installer as a post-MVP packaging milestone.
